@@ -1,0 +1,42 @@
+{
+  "$schema": "https://railway.app/schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "nixpacksPlan": {
+      "phases": {
+        "install": {
+          "cmds": [
+            "apt-get update && apt-get install -y php8.2-fpm php8.2-mysql php8.2-redis php8.2-mbstring php8.2-xml php8.2-curl php8.2-zip php8.2-bcmath php8.2-gd unzip nginx supervisor",
+            "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer",
+            "composer install --no-dev --optimize-autoloader"
+          ]
+        },
+        "setup": {
+          "cmds": [
+            "php artisan key:generate --force || true",
+            "chown -R nobody:nogroup /app/storage /app/bootstrap/cache || true"
+          ]
+        }
+      },
+      "variables": {
+        "APP_ENV": "production",
+        "LOG_CHANNEL": "stderr",
+        "CACHE_DRIVER": "redis"
+      }
+    }
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10,
+    "healthCheckPath": "/health",
+    "startCommand": "php artisan serve --host=0.0.0.0 --port=$PORT"
+  },
+  "database": {
+    "engine": "MYSQL",
+    "version": "8.0"
+  },
+  "redis": {
+    "version": "7"
+  }
+}
